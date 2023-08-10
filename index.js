@@ -1,10 +1,14 @@
 const express = require('express');
 const multer = require('multer');
+
+// for links and email
 const PDFExtract = require('pdf.js-extract').PDFExtract;
 const pdfExtract = new PDFExtract();
 const fs = require('fs');
 const buffer = fs.readFileSync("./pdf/CV.pdf");
 const options = {}; /* see below */
+
+// for mobile and id
 const pdfParse = require("pdf-parse");
 
 const app = express();
@@ -22,26 +26,30 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     }
   
     const pdfBuffer = req.file.buffer;
-  
+    
+    // linkdin name and email
     pdfExtract.extractBuffer(pdfBuffer, options, (err, data) => {
         if (err) return console.log(err);
-        // console.log(data);
-        // console.log(data.pages[0].links);
         data.pages[0].links.forEach(element => {
             if (element.includes("linkedin")) {
                 let linkedinUrl = element
                 console.log(linkedinUrl);
                 let name = element.slice(element.indexOf("in/")+3, element.lastIndexOf("-"))
                 console.log(name);
-            } else {let linkedinUrl = null}
+            } else {
+                let linkedinUrl = null
+                let name = null
+            }
             
             if (element.includes("mailto") && element.includes("@")) {
                 let email = element.slice(element.indexOf(":")+1, element.length-1)
                 console.log(email);
             } else {let email = null}
         });
-        // console.log(data.pages[0].content);
     });
+
+
+    // mobile and id
     const pdfDataParsed = await pdfParse(pdfBuffer);
     const extractedText = pdfDataParsed.text;
     const mobileRe = /(?:[-+() ]*\d){10,13}/gm; 
