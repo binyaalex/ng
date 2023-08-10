@@ -15,6 +15,7 @@ db.once('open', () => {
 
 
 const express = require('express');
+const cors = require('cors');
 const multer = require('multer');
 const Applicant = require('./models/applicant'); // Import the Mongoose model
 
@@ -35,7 +36,9 @@ const port = process.env.PORT || 3000;
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.use("/", express.static("public"));
+// app.use("/", express.static("public"));
+// Use cors middleware to enable cross-origin requests
+app.use(cors());
 
 // Route for get the data
 app.get('/applicants', async (req, res) => {
@@ -76,7 +79,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
             
             if (element.includes("mailto") && element.includes("@")) {
                 console.log(element);
-                applicantObj.email = element.slice(element.indexOf(":")+1, element.length-1)
+                applicantObj.email = element.slice(element.indexOf(":")+1, element.length)
             }
         });
     });
