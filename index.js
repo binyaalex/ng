@@ -35,8 +35,20 @@ const port = process.env.PORT || 3000;
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Route for file upload
 app.use("/", express.static("public"));
+
+// Route for get the data
+app.get('/applicants', async (req, res) => {
+    try {
+      const applicants = await Applicant.find();
+      res.status(200).json(applicants);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error fetching applicants' });
+    }
+});  
+
+// Route for file upload
 app.post('/upload', upload.single('pdf'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: 'No file provided' });
@@ -97,6 +109,26 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
         res.status(500).json({ message: 'Error saving data' });
     }
 });
+
+// Route for download file
+app.get('/download/:id', async (req, res) => {
+    try {
+      const id = req.params.id; // Get the document's ID from the URL
+      const applicant = await Applicant.findById(id);
+  
+      if (!applicant) {
+        return res.status(404).json({ message: 'Applicant not found' });
+      }
+  
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${applicant.name}.pdf`);
+      res.send(applicant.rawData);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error fetching PDF' });
+    }
+});
+  
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

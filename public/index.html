@@ -9,5 +9,33 @@
     <input type="file" name="pdf" accept=".pdf" required>
     <button type="submit">Upload</button>
   </form>
+
+  <h1>Applicants List</h1>
+  <ul id="applicants-list"></ul>
+
+  <script>
+    const applicantsList = document.getElementById('applicants-list');
+
+    fetch('/applicants')
+      .then(response => response.json())
+      .then(applicants => {
+        applicants.forEach(applicant => {
+          const listItem = document.createElement('li');
+          listItem.innerHTML = `
+            <strong>Name:</strong> ${applicant.name}<br>
+            <strong>Email:</strong> ${applicant.email}<br>
+            <strong>ID:</strong> ${applicant.id}<br>
+            <strong>LinkedIn:</strong> ${applicant.linkedin}<br>
+            <strong>Mobile:</strong> ${applicant.mobile}<br>
+            <a href="/download/${applicant._id}" target="_blank">Download PDF</a>
+            <hr>
+          `;
+          applicantsList.appendChild(listItem);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  </script>
 </body>
 </html>
