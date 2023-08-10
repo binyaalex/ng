@@ -1,39 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <title>PDF Upload Form</title>
 </head>
 <body>
-    <input type="file" id="inpFile">
-    <button type="button" id="btnUpload">Upload</button>
-    <br>
-    <br>
-    <textarea style="width: 300px; height: 150px;" id="resultText" placeholder="ur PDF text will appear here..."></textarea>
-    <script>
-        const inpFile = document.getElementById("inpFile");
-        const btnUpload = document.getElementById("btnUpload");
-        const resultText = document.getElementById("resultText");
-
-        btnUpload.addEventListener("click", () => {
-            const formData = new FormData();
-            formData.append("pdfFile", inpFile.files[0]);
-            fetch("/extract-text", {
-                method: "post",
-                body: formData
-            }).then(response => {
-                return response.text();
-            }).then(extractedText => {
-                let mobileRe = /(?:[-+() ]*\d){10,13}/gm; 
-                let idRe = /(?:[ ]*\d){9,9}/gm; 
-                let mobile = extractedText.match(mobileRe).map(function(s){return s.trim();});
-                let id = extractedText.match(idRe).map(function(s){return s.trim();});
-                console.log(mobile);
-                console.log(id);
-                resultText.value = extractedText;
-            })
-        });
-    </script>
+  <h1>Upload PDF</h1>
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="pdf" accept=".pdf" required>
+    <button type="submit">Upload</button>
+  </form>
 </body>
 </html>
