@@ -1,5 +1,22 @@
+//connect to database
+const mongoose = require('mongoose');
+const mongoURI = "mongodb+srv://binyaalex:b8r9Xem8hxdBE6ny@cluster0.ejsuui1.mongodb.net/?retryWrites=true&w=majority";
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
+});
+
+
+
 const express = require('express');
 const multer = require('multer');
+const Applicant = require('./models/applicant'); // Import the Mongoose model
 
 // for links and email
 const PDFExtract = require('pdf.js-extract').PDFExtract;
@@ -24,27 +41,31 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: 'No file provided' });
     }
-  
+
+    const applicantObj = {
+        name: null,
+        email: null,
+        id: null,
+        linkedin: null,
+        mobile: null,
+    }
     const pdfBuffer = req.file.buffer;
     
     // linkdin name and email
     pdfExtract.extractBuffer(pdfBuffer, options, (err, data) => {
         if (err) return console.log(err);
         data.pages[0].links.forEach(element => {
+            // console.log(element);
             if (element.includes("linkedin")) {
-                let linkedinUrl = element
-                console.log(linkedinUrl);
-                let name = element.slice(element.indexOf("in/")+3, element.lastIndexOf("-"))
-                console.log(name);
-            } else {
-                let linkedinUrl = null
-                let name = null
+                console.log(element);
+                applicantObj.linkedin = element
+                applicantObj.name = element.slice(element.indexOf("in/")+3, element.lastIndexOf("-"))
             }
             
             if (element.includes("mailto") && element.includes("@")) {
-                let email = element.slice(element.indexOf(":")+1, element.length-1)
-                console.log(email);
-            } else {let email = null}
+                console.log(element);
+                applicantObj.email = element.slice(element.indexOf(":")+1, element.length-1)
+            }
         });
     });
 
@@ -54,10 +75,27 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     const extractedText = pdfDataParsed.text;
     const mobileRe = /(?:[-+() ]*\d){10,13}/gm; 
     const idRe = /(?:[ ]*\d){9,9}/gm; 
-    let mobile = extractedText.match(mobileRe)?.map(function(s){return s.trim();}) || null;
-    let id = extractedText.match(idRe)?.map(function(s){return s.trim();}) || null;
-    console.log(mobile);
-    console.log(id);
+    applicantObj.mobile = extractedText.match(mobileRe)?.map(function(s){return s.trim();})[0] || null;
+    applicantObj.id = extractedText.match(idRe)?.map(function(s){return s.trim();})[0] || null;
+
+    // save to MongoDB
+    console.log(applicantObj);
+    const applicant = new Applicant({
+        name: applicantObj.name,
+        email: applicantObj.email,
+        id: applicantObj.id,
+        linkedin: applicantObj.linkedin,
+        mobile: applicantObj.mobile,
+        rawData: pdfBuffer,
+    });
+
+    try {
+    await applicant.save();
+        res.status(200).json({ message: 'Data saved successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error saving data' });
+    }
 });
 
 app.listen(port, () => {
