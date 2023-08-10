@@ -2,6 +2,22 @@
 <html>
 <head>
   <title>PDF Upload Form</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
 </head>
 <body>
   <h1>Upload PDF</h1>
@@ -11,26 +27,29 @@
   </form>
 
   <h1>Applicants List</h1>
-  <ul id="applicants-list"></ul>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Candidate name</th>
+      <th>LinkedIn</th>
+      <th>PDF</th>
+    </tr>
+  </table>
 
   <script>
-    const applicantsList = document.getElementById('applicants-list');
+    const table = document.querySelector('table');
 
     fetch('/applicants')
       .then(response => response.json())
       .then(applicants => {
         applicants.forEach(applicant => {
-          const listItem = document.createElement('li');
-          listItem.innerHTML = `
-            <strong>Name:</strong> ${applicant.name}<br>
-            <strong>Email:</strong> ${applicant.email}<br>
-            <strong>ID:</strong> ${applicant.id}<br>
-            <strong>LinkedIn:</strong> ${applicant.linkedin}<br>
-            <strong>Mobile:</strong> ${applicant.mobile}<br>
-            <a href="/download/${applicant._id}" target="_blank">Download PDF</a>
-            <hr>
+          const row = table.insertRow();
+          row.innerHTML = `
+            <td>${applicant.id}</td>
+            <td>${applicant.name}</td>
+            <td>${applicant.linkedin}</td>
+            <td><a href="/download/${applicant._id}" target="_blank">Download PDF</a></td>
           `;
-          applicantsList.appendChild(listItem);
         });
       })
       .catch(error => {
