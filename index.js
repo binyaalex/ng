@@ -1,29 +1,12 @@
-//connect to database
-const mongoose = require('mongoose');
-const mongoURI = "mongodb+srv://binyaalex:b8r9Xem8hxdBE6ny@cluster0.ejsuui1.mongodb.net/?retryWrites=true&w=majority";
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', () => {
-  console.log('Connected to MongoDB');
-});
-
-
-
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const connectDB = require('./models/db'); // Import the connectDB model
 const Applicant = require('./models/applicant'); // Import the Mongoose model
 
 // for links and email
 const PDFExtract = require('pdf.js-extract').PDFExtract;
 const pdfExtract = new PDFExtract();
-const fs = require('fs');
-const buffer = fs.readFileSync("./pdf/CV.pdf");
 const options = {}; /* see below */
 
 // for mobile and id
@@ -36,7 +19,8 @@ const port = process.env.PORT || 3000;
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// app.use("/", express.static("public"));
+connectDB()
+app.use("/", express.static("public"));
 // Use cors middleware to enable cross-origin requests
 app.use(cors());
 
