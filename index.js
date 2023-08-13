@@ -57,7 +57,7 @@ function extractNamesFromText(text) {
 }
 
 connectDB()
-app.use("/", express.static("public"));
+// app.use("/", express.static("public"));
 // Use cors middleware to enable cross-origin requests
 app.use(cors());
 
@@ -99,7 +99,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
         });
       });
   
-      console.log(data.pages[0].links);
+      // console.log(data.pages[0].links);
   
       for (const element of data.pages[0].links) {
         if (element.includes("linkedin")) {
@@ -142,28 +142,28 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     //name
     if (!applicantObj.name) {
       const extractedNames = extractNamesFromText(pdfDataParsed.text);
-      console.log(extractedNames);
+      // console.log(extractedNames);
       applicantObj.name = extractedNames[0]
     }
 
     // save to MongoDB
     console.log(applicantObj);
-    // const applicant = new Applicant({
-    //     name: applicantObj.name,
-    //     email: applicantObj.email,
-    //     id: applicantObj.id,
-    //     linkedin: applicantObj.linkedin,
-    //     mobile: applicantObj.mobile,
-    //     rawData: pdfBuffer,
-    // });
+    const applicant = new Applicant({
+        name: applicantObj.name,
+        email: applicantObj.email,
+        id: applicantObj.id,
+        linkedin: applicantObj.linkedin,
+        mobile: applicantObj.mobile,
+        rawData: pdfBuffer,
+    });
 
-    // try {
-    // await applicant.save();
-    //     res.status(200).json({ message: 'Data saved successfully' });
-    // } catch (error) {
-    //     console.error(error);
-    //     res.status(500).json({ message: 'Error saving data' });
-    // }
+    try {
+    await applicant.save();
+        res.status(200).json({ message: 'Data saved successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error saving data' });
+    }
 });
 
 // Route for download file
@@ -187,5 +187,5 @@ app.get('/download/:id', async (req, res) => {
   
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  // console.log(`Server is running on port ${port}`);
 });
