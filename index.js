@@ -132,7 +132,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     // console.log(pdfDataParsed);
     const extractedText = pdfDataParsed.text;
     const mobileRe = /(?:[-+() ]*\d){10,13}/gm; 
-    applicantObj.mobile = extractedText.match(mobileRe)?.map(function(s){return s.trim();})[0] || null;
+    applicantObj.mobile = extractedText.match(mobileRe)?.map(function(s){return s.trim();})[0].replace(/[^0-9]/g, '') || null;
     const idRe = /\b\d{9}\b/gm; 
     applicantObj.id = extractedText.match(idRe)?.map(function(s){return s.trim();})[0] || null;
 
@@ -156,8 +156,8 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     // save to MongoDB
     console.log(applicantObj);
     const applicant = new Applicant({
-      firstName: applicantObj.name,
-      lastName: applicantObj.name,
+      firstName: applicantObj.firstName,
+      lastName: applicantObj.lastName,
       email: applicantObj.email,
       id: applicantObj.id,
       linkedin: applicantObj.linkedin,
@@ -165,13 +165,13 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       rawData: pdfBuffer,
     });
 
-    // try {
-    // await applicant.save();
-    //     res.status(200).json({ message: 'Data saved successfully' });
-    // } catch (error) {
-    //     console.error(error);
-    //     res.status(500).json({ message: 'Error saving data' });
-    // }
+    try {
+    await applicant.save();
+        res.status(200).json({ message: 'Data saved successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error saving data' });
+    }
 });
 
 // Route for download file
