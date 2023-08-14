@@ -63,13 +63,13 @@ app.use(cors());
 
 // Route for get the data
 app.get('/applicants', async (req, res) => {
-    try {
-      const applicants = await Applicant.find();
-      res.status(200).json(applicants);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching applicants' });
-    }
+  try {
+    const applicants = await Applicant.find();
+    res.status(200).json(applicants);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching applicants' });
+  }
 });  
 
 // Route for file upload
@@ -79,7 +79,8 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     }
 
     const applicantObj = {
-        name: null,
+        firstName: null,
+        lastName: null, 
         email: null,
         id: null,
         linkedin: null,
@@ -106,7 +107,11 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
           applicantObj.linkedin = element;
           const nameStartIndex = element.indexOf("in/") + 3;
           const nameEndIndex = element.lastIndexOf("-");
-          applicantObj.name = element.slice(nameStartIndex, nameEndIndex);
+          const fullName = element.slice(nameStartIndex, nameEndIndex);
+          console.log(fullName);
+          applicantObj.firstName = fullName.slice(0, fullName.indexOf("-"));
+          applicantObj.lastName = fullName.slice(fullName.indexOf("-")+1, fullName.length);
+          console.log(applicantObj);
         }
   
         if (element.includes("mailto") && element.includes("@")) {
@@ -140,10 +145,12 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     }
 
     //name
-    if (!applicantObj.name) {
+    if (!applicantObj.firstName && !applicantObj.fullName) {
       const extractedNames = extractNamesFromText(pdfDataParsed.text);
       // console.log(extractedNames);
-      applicantObj.name = extractedNames[0]
+      const fullName = extractedNames[0]
+      applicantObj.firstName = fullName.slice(0, fullName.indexOf(" "));
+      applicantObj.lastName = fullName.slice(fullName.indexOf(" ")+1, fullName.length);
     }
 
     // save to MongoDB
@@ -158,13 +165,13 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       rawData: pdfBuffer,
     });
 
-    try {
-    await applicant.save();
-        res.status(200).json({ message: 'Data saved successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error saving data' });
-    }
+    // try {
+    // await applicant.save();
+    //     res.status(200).json({ message: 'Data saved successfully' });
+    // } catch (error) {
+    //     console.error(error);
+    //     res.status(500).json({ message: 'Error saving data' });
+    // }
 });
 
 // Route for download file
