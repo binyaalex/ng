@@ -46,7 +46,7 @@
           const row = table.insertRow();
           row.innerHTML = `
             <td>${applicant.id}</td>
-            <td>${applicant.name}</td>
+            <td>${applicant.firstName + " " + applicant.lastName}</td>
             <td>${applicant.linkedin}</td>
             <td><a href="/download/${applicant._id}" target="_blank">Download PDF</a></td>
           `;

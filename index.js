@@ -57,7 +57,7 @@ function extractNamesFromText(text) {
 }
 
 connectDB()
-// app.use("/", express.static("public"));
+app.use("/", express.static("public"));
 // Use cors middleware to enable cross-origin requests
 app.use(cors());
 
@@ -149,12 +149,13 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     // save to MongoDB
     console.log(applicantObj);
     const applicant = new Applicant({
-        name: applicantObj.name,
-        email: applicantObj.email,
-        id: applicantObj.id,
-        linkedin: applicantObj.linkedin,
-        mobile: applicantObj.mobile,
-        rawData: pdfBuffer,
+      firstName: applicantObj.name,
+      lastName: applicantObj.name,
+      email: applicantObj.email,
+      id: applicantObj.id,
+      linkedin: applicantObj.linkedin,
+      mobile: applicantObj.mobile,
+      rawData: pdfBuffer,
     });
 
     try {
@@ -184,7 +185,7 @@ app.get('/download/:id', async (req, res) => {
       res.status(500).json({ message: 'Error fetching PDF' });
     }
 });
-  
+
 
 app.listen(port, () => {
   // console.log(`Server is running on port ${port}`);

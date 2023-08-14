@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
 
 const applicantSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  id: String,
-  linkedin: String,
-  mobile: String,
+  firstName: { type: String, default: null },
+  lastName: { type: String, default: null },
+  email: { type: String, default: null },
+  id: { type: String, default: null },
+  linkedin: { type: String, default: null },
+  mobile: { type: String, default: null },
   rawData: Buffer, // Store the raw PDF file content as a Buffer
 });
 
