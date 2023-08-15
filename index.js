@@ -20,41 +20,48 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 function extractNamesFromText(text) {
   const lines = text.split('\n');
-  let words = [];
+  let potentialNames = [];
 
-  // Split lines into words
-  for (const line of lines) {
-    words = words.concat(line.trim().split(' '));
+  for (let i = 0; i < lines.length - 1; i++) {
+  const line = lines[i].trim();
+
+  // Check if the line contains only uppercase letters and is not too long
+  if (/^[A-Z ]{2,}$/.test(line)) {
+    potentialNames.push(line);
+    continue; // Move to the next line
   }
 
-  // Identify consecutive capitalized words as potential names
-  let potentialNames = [];
-  let currentName = '';
+  const words = line.split(/\s+/);
 
-  for (const word of words) {
-    if (word.match(/^[A-Z][a-z]*$/)) {
-      currentName += word + ' ';
-    } else if (word.match(/^[A-Z][a-z]*[A-Z][a-z]*$/)) {
-      // Handle names without spaces
-      potentialNames.push(word);
-    } else {
-      if (currentName.trim() !== '') {
-        potentialNames.push(currentName.trim());
-        currentName = '';
+  for (let j = 0; j < words.length - 1; j++) {
+    const word1 = words[j];
+    const word2 = words[j + 1];
+
+    if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*$/)) {
+      if (word1.length <= 15 && word2.length <= 15) {
+        potentialNames.push(`${word1} ${word2}`);
+      }
+    }
+
+    if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+$/) && words[j + 2] === undefined) {
+      if (word1.length <= 15 && word2.length <= 15) {
+        potentialNames.push(`${word1} ${word2}`);
       }
     }
   }
-
-  // Convert names without spaces to names with spaces
-  const namesWithSpaces = potentialNames.map(name => {
-    if (name.match(/^[A-Z][a-z]*[A-Z][a-z]*$/)) {
-      return name.replace(/([a-z])([A-Z])/g, '$1 $2');
-    }
-    return name;
-  });
-
-  return namesWithSpaces;
 }
+
+
+  return potentialNames;
+}
+
+// Example usage
+// const text = /* Your example text here */;
+// const potentialNames = extractNamesFromText(text);
+// console.log(potentialNames);
+
+
+
 
 connectDB()
 app.use("/", express.static("public"));
@@ -100,7 +107,8 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
         });
       });
   
-      // console.log(data.pages[0].links);
+      // console.log("data:");
+      // console.log(data.pages[0]);
   
       for (const element of data.pages[0].links) {
         if (element.includes("linkedin")) {
@@ -146,11 +154,14 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
 
     //name
     if (!applicantObj.firstName && !applicantObj.fullName) {
+      console.log(pdfDataParsed);
       const extractedNames = extractNamesFromText(pdfDataParsed.text);
-      // console.log(extractedNames);
+      console.log(extractedNames);
       const fullName = extractedNames[0]
-      applicantObj.firstName = fullName.slice(0, fullName.indexOf(" "));
-      applicantObj.lastName = fullName.slice(fullName.indexOf(" ")+1, fullName.length);
+      if (fullName) {
+        applicantObj.firstName = fullName.slice(0, fullName.indexOf(" "));
+        applicantObj.lastName = fullName.slice(fullName.indexOf(" ")+1, fullName.length);
+      }
     }
 
     // save to MongoDB
@@ -195,5 +206,5 @@ app.get('/download/:id', async (req, res) => {
 
 
 app.listen(port, () => {
-  // console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
