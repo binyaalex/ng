@@ -18,6 +18,8 @@ const port = process.env.PORT || 3000;
 // Set up storage for multer
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+
 function extractNamesFromText(text) {
   const lines = text.split('\n');
   let potentialNames = [];
@@ -34,25 +36,40 @@ function extractNamesFromText(text) {
   const words = line.split(/\s+/);
 
   for (let j = 0; j < words.length - 1; j++) {
-    const word1 = words[j];
-    const word2 = words[j + 1];
+      const word1 = words[j];
+      const word2 = words[j + 1];
 
-    if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*$/)) {
-      if (word1.length <= 15 && word2.length <= 15) {
-        potentialNames.push(`${word1} ${word2}`);
+      if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*$/)) {
+        if (word1.length <= 15 && word2.length <= 15) {
+          potentialNames.push(`${word1} ${word2}`);
+        }
       }
-    }
 
-    if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+$/) && words[j + 2] === undefined) {
-      if (word1.length <= 15 && word2.length <= 15) {
-        potentialNames.push(`${word1} ${word2}`);
+      if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+$/) && words[j + 2] === undefined) {
+        if (word1.length <= 15 && word2.length <= 15) {
+          potentialNames.push(`${word1} ${word2}`);
+        }
       }
     }
   }
+  return potentialNames;
 }
 
+function validateIsraeliID(id) {
+  if (!/^\d{9}$/.test(id)) {
+    return false; // ID must be exactly 9 digits
+  }
 
-  return potentialNames;
+  const idDigits = id.split('').map(Number);
+  const weights = [1, 2, 1, 2, 1, 2, 1, 2, 1];
+  let sum = 0;
+
+  for (let i = 0; i < 9; i++) {
+    const digit = idDigits[i] * weights[i];
+    sum += digit >= 10 ? digit - 9 : digit;
+  }
+
+  return sum % 10 === 0;
 }
 
 // Example usage
@@ -116,10 +133,8 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
           const nameStartIndex = element.indexOf("in/") + 3;
           const nameEndIndex = element.lastIndexOf("-");
           const fullName = element.slice(nameStartIndex, nameEndIndex);
-          console.log(fullName);
           applicantObj.firstName = fullName.slice(0, fullName.indexOf("-"));
           applicantObj.lastName = fullName.slice(fullName.indexOf("-")+1, fullName.length);
-          console.log(applicantObj);
         }
   
         if (element.includes("mailto") && element.includes("@")) {
@@ -142,7 +157,14 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     const mobileRe = /(?:[-+() ]*\d){10,13}/gm; 
     applicantObj.mobile = extractedText.match(mobileRe)?.map(function(s){return s.trim();})[0].replace(/[^0-9]/g, '') || null;
     const idRe = /\b\d{9}\b/gm; 
-    applicantObj.id = extractedText.match(idRe)?.map(function(s){return s.trim();})[0] || null;
+    // applicantObj.id = extractedText.match(idRe)?.map(function(s){return s.trim();})[0] || null;
+    const potentialIds = extractedText.match(idRe)?.map(function(s){return s.trim();});
+    console.log(potentialIds);
+    for (let id of potentialIds) {
+      if (validateIsraeliID(id)) {
+        applicantObj.id = id
+      }
+    }
 
     // mail name and linkdin if it didn't work from the links
 
@@ -165,6 +187,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     }
 
     // save to MongoDB
+    console.log("applicantObj");
     console.log(applicantObj);
     const applicant = new Applicant({
       firstName: applicantObj.firstName,
@@ -176,13 +199,13 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       rawData: pdfBuffer,
     });
 
-    try {
-    await applicant.save();
-        res.status(200).json({ message: 'Data saved successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error saving data' });
-    }
+    // try {
+    // await applicant.save();
+    //     res.status(200).json({ message: 'Data saved successfully' });
+    // } catch (error) {
+    //     console.error(error);
+    //     res.status(500).json({ message: 'Error saving data' });
+    // }
 });
 
 // Route for download file
