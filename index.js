@@ -25,34 +25,50 @@ function extractNamesFromText(text) {
   let potentialNames = [];
 
   for (let i = 0; i < lines.length - 1; i++) {
-  const line = lines[i].trim();
+    const line = lines[i].trim();
+    const nextLine = lines[i + 1].trim();
 
-  // Check if the line contains only uppercase letters and is not too long
-  if (/^[A-Z ]{2,}$/.test(line)) {
-    potentialNames.push(line);
-    continue; // Move to the next line
-  }
+    // Skip empty lines
+    if (line === '' || nextLine === '') {
+      continue;
+    }
 
-  const words = line.split(/\s+/);
-
-  for (let j = 0; j < words.length - 1; j++) {
-      const word1 = words[j];
-      const word2 = words[j + 1];
-
-      if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*[,.\\-]?$/)) {
-        if (word1.length <= 15 && word2.length <= 15) {
-          potentialNames.push(`${word1} ${word2}`);
-        }
+    // Check if both the current line and next line have only one word
+    if (line.split(/\s+/).length === 1 && nextLine.split(/\s+/).length === 1) {
+      // Check if both lines are either all uppercase or capitalized
+      if (
+        (line === line.toUpperCase() || isCapitalized(line)) &&
+        (nextLine === nextLine.toUpperCase() || isCapitalized(nextLine))
+      ) {
+        potentialNames.push(`${line} ${nextLine}`);
+        i++; // Skip the next line since it's already used
       }
+    } 
 
-      if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+[,.\\-]?$/) && words[j + 2] === undefined) {
-        if (word1.length <= 15 && word2.length <= 15) {
-          potentialNames.push(`${word1} ${word2}`);
+    const words = line.split(/\s+/);
+    for (let j = 0; j < words.length - 1; j++) {
+        const word1 = words[j];
+        const word2 = words[j + 1];
+
+        if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*[,.\\-]?$/)) {
+          if (word1.length <= 15 && word2.length <= 15) {
+            potentialNames.push(`${word1} ${word2}`);
+          }
         }
-      }
+
+        if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+[,.\\-]?$/) && words[j + 2] === undefined) {
+          if (word1.length <= 15 && word2.length <= 15) {
+            potentialNames.push(`${word1} ${word2}`);
+          }
+        }
     }
   }
+
   return potentialNames;
+}
+
+function isCapitalized(str) {
+  return str[0] === str[0].toUpperCase() && str.slice(1) === str.slice(1).toLowerCase();
 }
 
 function validateIsraeliID(id) {
@@ -199,13 +215,13 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       rawData: pdfBuffer,
     });
 
-    // try {
-    // await applicant.save();
-    //     res.status(200).json({ message: 'Data saved successfully' });
-    // } catch (error) {
-    //     console.error(error);
-    //     res.status(500).json({ message: 'Error saving data' });
-    // }
+    try {
+    await applicant.save();
+        res.status(200).json({ message: 'Data saved successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error saving data' });
+    }
 });
 
 // Route for download file
