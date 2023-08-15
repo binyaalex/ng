@@ -39,13 +39,13 @@ function extractNamesFromText(text) {
       const word1 = words[j];
       const word2 = words[j + 1];
 
-      if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*$/)) {
+      if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*[,.\\-]?$/)) {
         if (word1.length <= 15 && word2.length <= 15) {
           potentialNames.push(`${word1} ${word2}`);
         }
       }
 
-      if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+$/) && words[j + 2] === undefined) {
+      if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+[,.\\-]?$/) && words[j + 2] === undefined) {
         if (word1.length <= 15 && word2.length <= 15) {
           potentialNames.push(`${word1} ${word2}`);
         }
@@ -158,7 +158,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     applicantObj.mobile = extractedText.match(mobileRe)?.map(function(s){return s.trim();})[0].replace(/[^0-9]/g, '') || null;
     const idRe = /\b\d{9}\b/gm; 
     // applicantObj.id = extractedText.match(idRe)?.map(function(s){return s.trim();})[0] || null;
-    const potentialIds = extractedText.match(idRe)?.map(function(s){return s.trim();});
+    const potentialIds = extractedText.match(idRe)?.map(function(s){return s.trim();}) || [];
     console.log(potentialIds);
     for (let id of potentialIds) {
       if (validateIsraeliID(id)) {
