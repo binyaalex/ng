@@ -31,6 +31,8 @@
     <tr>
       <th>ID</th>
       <th>Candidate name</th>
+      <th>Email</th>
+      <th>Phone</th>
       <th>LinkedIn</th>
       <th>PDF</th>
     </tr>
@@ -47,6 +49,8 @@
           row.innerHTML = `
             <td>${applicant.id}</td>
             <td>${applicant.firstName + " " + applicant.lastName}</td>
+            <td>${applicant.email}</td>
+            <td>${applicant.mobile}</td>
             <td>${applicant.linkedin}</td>
             <td><a href="/download/${applicant._id}" target="_blank">Download PDF</a></td>
           `;
