@@ -133,10 +133,7 @@ async function validateIsraeliID(id) {
 }
 
 //work  
-async function extractMobileAndID(pdfBuffer, applicantObj) {
-    console.log(applicantObj);
-  const pdfDataParsed = await pdfParse(pdfBuffer);
-  const extractedText = pdfDataParsed.text;
+async function extractMobileAndID(pdfBuffer, applicantObj, extractedText) {
 
   // Extract mobile
   const mobileRe = /(?:[-+() ]*\d){10,13}/gm;

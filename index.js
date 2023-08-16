@@ -63,7 +63,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     try {
       await extractLinksAndInfo(pdfBuffer, applicantObj, extractedText);
 
-      await extractMobileAndID(pdfBuffer, applicantObj);
+      await extractMobileAndID(pdfBuffer, applicantObj, extractedText);
   
       // Rest of your code
     } catch (error) {
