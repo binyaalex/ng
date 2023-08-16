@@ -103,9 +103,10 @@ async function extractLinksAndInfo(pdfBuffer, applicantObj, extractedText) {
           if (!applicantObj.firstName && !applicantObj.lastName) {
             const extractedNames = extractNamesFromText(extractedText);
             if (extractedNames) {
-                const fullName = extractedNames[0]
-                applicantObj.firstName = fullName.slice(0, fullName.indexOf(" "));
-                applicantObj.lastName = fullName.slice(fullName.indexOf(" ")+1, fullName.length);
+                const punctuationPattern = /[,.?!\:\{\[\(\)\]}]/g;
+                const fullName = extractedNames[0].replace(punctuationPattern, "")
+                applicantObj.firstName = fullName.slice(0, fullName.indexOf(" ")).toLocaleLowerCase();
+                applicantObj.lastName = fullName.slice(fullName.indexOf(" ")+1, fullName.length).toLocaleLowerCase();
             }
           }
 

@@ -84,13 +84,13 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       rawData: pdfBuffer,
     });
 
-    try {
-    await applicant.save();
-        res.status(200).json({ message: 'Data saved successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error saving data' });
-    }
+    // try {
+    // await applicant.save();
+    //     res.status(200).json({ message: 'Data saved successfully' });
+    // } catch (error) {
+    //     console.error(error);
+    //     res.status(500).json({ message: 'Error saving data' });
+    // }
 });
 
 // Route for download file
