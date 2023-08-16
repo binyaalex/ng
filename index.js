@@ -19,82 +19,8 @@ const port = process.env.PORT || 3000;
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-
-function extractNamesFromText(text) {
-  const lines = text.split('\n');
-  let potentialNames = [];
-
-  for (let i = 0; i < lines.length - 1; i++) {
-    const line = lines[i].trim();
-    const nextLine = lines[i + 1].trim();
-
-    // Skip empty lines
-    if (line === '' || nextLine === '') {
-      continue;
-    }
-
-    // Check if both the current line and next line have only one word
-    if (line.split(/\s+/).length === 1 && nextLine.split(/\s+/).length === 1) {
-      // Check if both lines are either all uppercase or capitalized
-      if (
-        (line === line.toUpperCase() || isCapitalized(line)) &&
-        (nextLine === nextLine.toUpperCase() || isCapitalized(nextLine))
-      ) {
-        potentialNames.push(`${line} ${nextLine}`);
-        i++; // Skip the next line since it's already used
-      }
-    } 
-
-    const words = line.split(/\s+/);
-    for (let j = 0; j < words.length - 1; j++) {
-        const word1 = words[j];
-        const word2 = words[j + 1];
-
-        if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*[,.\\-]?$/)) {
-          if (word1.length <= 15 && word2.length <= 15) {
-            potentialNames.push(`${word1} ${word2}`);
-          }
-        }
-
-        if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+[,.\\-]?$/) && words[j + 2] === undefined) {
-          if (word1.length <= 15 && word2.length <= 15) {
-            potentialNames.push(`${word1} ${word2}`);
-          }
-        }
-    }
-  }
-
-  return potentialNames;
-}
-
-function isCapitalized(str) {
-  return str[0] === str[0].toUpperCase() && str.slice(1) === str.slice(1).toLowerCase();
-}
-
-function validateIsraeliID(id) {
-  if (!/^\d{9}$/.test(id)) {
-    return false; // ID must be exactly 9 digits
-  }
-
-  const idDigits = id.split('').map(Number);
-  const weights = [1, 2, 1, 2, 1, 2, 1, 2, 1];
-  let sum = 0;
-
-  for (let i = 0; i < 9; i++) {
-    const digit = idDigits[i] * weights[i];
-    sum += digit >= 10 ? digit - 9 : digit;
-  }
-
-  return sum % 10 === 0;
-}
-
-// Example usage
-// const text = /* Your example text here */;
-// const potentialNames = extractNamesFromText(text);
-// console.log(potentialNames);
-
-
-
+//functions
+const { extractMobileAndID, extractLinksAndInfo } = require('./models/functions');
 
 connectDB()
 app.use("/", express.static("public"));
@@ -128,78 +54,21 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     }
     const pdfBuffer = req.file.buffer;
     
-    // links - linkdin name and email
+    // mobile and id
+    const pdfDataParsed = await pdfParse(pdfBuffer);
+    // console.log(pdfDataParsed);
+    const extractedText = pdfDataParsed.text;
+    
+    // links - for linkdin name and email
     try {
-      const data = await new Promise((resolve, reject) => {
-        pdfExtract.extractBuffer(pdfBuffer, options, (err, extractedData) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(extractedData);
-          }
-        });
-      });
-  
-      // console.log("data:");
-      // console.log(data.pages[0]);
-  
-      for (const element of data.pages[0].links) {
-        if (element.includes("linkedin")) {
-          applicantObj.linkedin = element;
-          const nameStartIndex = element.indexOf("in/") + 3;
-          const nameEndIndex = element.lastIndexOf("-");
-          const fullName = element.slice(nameStartIndex, nameEndIndex);
-          applicantObj.firstName = fullName.slice(0, fullName.indexOf("-"));
-          applicantObj.lastName = fullName.slice(fullName.indexOf("-")+1, fullName.length);
-        }
-  
-        if (element.includes("mailto") && element.includes("@")) {
-          applicantObj.email = element.slice(element.indexOf(":") + 1);
-        }
-      }
+      await extractLinksAndInfo(pdfBuffer, applicantObj, extractedText);
+
+      await extractMobileAndID(pdfBuffer, applicantObj);
   
       // Rest of your code
     } catch (error) {
       console.error('Error extracting PDF:', error);
       // Handle the error
-    }
-    
-
-
-    // mobile and id
-    const pdfDataParsed = await pdfParse(pdfBuffer);
-    // console.log(pdfDataParsed);
-    const extractedText = pdfDataParsed.text;
-    const mobileRe = /(?:[-+() ]*\d){10,13}/gm; 
-    applicantObj.mobile = extractedText.match(mobileRe)?.map(function(s){return s.trim();})[0].replace(/[^0-9]/g, '') || null;
-    const idRe = /\b\d{9}\b/gm; 
-    // applicantObj.id = extractedText.match(idRe)?.map(function(s){return s.trim();})[0] || null;
-    const potentialIds = extractedText.match(idRe)?.map(function(s){return s.trim();}) || [];
-    console.log(potentialIds);
-    for (let id of potentialIds) {
-      if (validateIsraeliID(id)) {
-        applicantObj.id = id
-      }
-    }
-
-    // mail name and linkdin if it didn't work from the links
-
-    //mail
-    if (!applicantObj.email) {
-      const emailRe = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
-      applicantObj.email = emailRe.exec(extractedText).map(function(s){return s.trim();})[0] || null;
-    }
-
-    //name
-    if (!applicantObj.firstName && !applicantObj.fullName) {
-      console.log(pdfDataParsed);
-      const extractedNames = extractNamesFromText(pdfDataParsed.text);
-      console.log(extractedNames);
-      const fullName = extractedNames[0]
-      if (fullName) {
-        applicantObj.firstName = fullName.slice(0, fullName.indexOf(" "));
-        applicantObj.lastName = fullName.slice(fullName.indexOf(" ")+1, fullName.length);
-      }
     }
 
     // save to MongoDB
