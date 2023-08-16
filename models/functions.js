@@ -24,7 +24,8 @@ function extractEmail(extractedText) {
 function extractNamesFromText(text) {
     const lines = text.split('\n');
     let potentialNames = [];
-  
+    let foundName = false; // Flag to track if a name has been found
+    
     for (let i = 0; i < lines.length - 1; i++) {
       const line = lines[i].trim();
       const nextLine = lines[i + 1].trim();
@@ -42,31 +43,44 @@ function extractNamesFromText(text) {
           (nextLine === nextLine.toUpperCase() || isCapitalized(nextLine))
         ) {
           potentialNames.push(`${line} ${nextLine}`);
-          i++; // Skip the next line since it's already used
+          foundName = true; // Set the flag to true
+          break; // Stop processing lines
         }
-      } 
+      }
+  
+      if (foundName) {
+        break; // Stop processing lines if a name has been found
+      }
   
       const words = line.split(/\s+/);
       for (let j = 0; j < words.length - 1; j++) {
-          const word1 = words[j];
-          const word2 = words[j + 1];
+        const word1 = words[j];
+        const word2 = words[j + 1];
   
-          if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*[,.\\-]?$/)) {
-            if (word1.length <= 15 && word2.length <= 15) {
-              potentialNames.push(`${word1} ${word2}`);
-            }
+        if (word1.match(/^[A-Z][a-z]*$/) && word2.match(/^[A-Z][a-z]*[,.\\-]?$/)) {
+          if (word1.length <= 15 && word2.length <= 15) {
+            potentialNames.push(`${word1} ${word2}`);
+            foundName = true; // Set the flag to true
+            break; // Stop processing lines
           }
+        }
   
-          if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+[,.\\-]?$/) && words[j + 2] === undefined) {
-            if (word1.length <= 15 && word2.length <= 15) {
-              potentialNames.push(`${word1} ${word2}`);
-            }
+        if (word1.match(/^[A-Z]+$/) && word2.match(/^[A-Z]+[,.\\-]?$/) && words[j + 2] === undefined) {
+          if (word1.length <= 15 && word2.length <= 15) {
+            potentialNames.push(`${word1} ${word2}`);
+            foundName = true; // Set the flag to true
+            break; // Stop processing lines
           }
+        }
+      }
+  
+      if (foundName) {
+        break; // Stop processing lines if a name has been found
       }
     }
-  
     return potentialNames;
 }
+  
   
 function isCapitalized(str) {
     return str[0] === str[0].toUpperCase() && str.slice(1) === str.slice(1).toLowerCase();
