@@ -86,6 +86,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
 
     try {
         await applicant.save();
+        console.log("Data saved successfully");
         res.status(200).json({ message: 'Data saved successfully' });
     } catch (error) {
         console.error(error);

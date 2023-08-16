@@ -13,17 +13,21 @@ async function processPDFFiles() {
 
     for (const pdfFile of pdfFiles) {
       const pdfPath = path.join(pdfFolder, pdfFile);
-      const pdfBuffer = await fs.promises.readFile(pdfPath);
+      const stats = await fs.promises.stat(pdfPath);
 
-      const form = new FormData();
-      form.append('pdf', pdfBuffer, pdfFile);
+      if (stats.isFile() && pdfFile.endsWith('.pdf')) {
+        const pdfBuffer = await fs.promises.readFile(pdfPath);
 
-      const headers = {
-        ...form.getHeaders(),
-      };
+        const form = new FormData();
+        form.append('pdf', pdfBuffer, pdfFile);
 
-      const response = await axios.post(uploadUrl, form, { headers });
-      console.log(`Uploaded and processed ${pdfFile}:`, response.data);
+        const headers = {
+          ...form.getHeaders(),
+        };
+
+        const response = await axios.post(uploadUrl, form, { headers });
+        console.log(`Uploaded and processed ${pdfFile}:`, response.data);
+      }
     }
 
     console.log('Processing completed.');
