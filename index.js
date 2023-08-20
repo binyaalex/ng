@@ -22,7 +22,7 @@ const upload = multer({ storage: storage });
 //functions
 const { extractMobileAndID, extractLinksAndInfo } = require('./models/functions');
 
-connectDB()
+// connectDB()
 app.use("/", express.static("public"));
 // Use cors middleware to enable cross-origin requests
 app.use(cors());
@@ -116,7 +116,13 @@ app.get('/download/:id', async (req, res) => {
     }
 });
 
-
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+connectDB().then(() => {
+  console.log('Connected to MongoDB');
+  
+  // Start the server
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}).catch((error) => {
+  console.error('Error connecting to MongoDB:', error);
 });
