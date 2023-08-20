@@ -56,7 +56,6 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     
     // mobile and id
     const pdfDataParsed = await pdfParse(pdfBuffer);
-    // console.log(pdfDataParsed);
     const extractedText = pdfDataParsed.text;
     
     // links - for linkdin name and email
@@ -70,10 +69,8 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
       console.error('Error extracting PDF:', error);
       // Handle the error
     }
-
-    // save to MongoDB
-    console.log("applicantObj");
     console.log(applicantObj);
+    // save to MongoDB
     const applicant = new Applicant({
       firstName: applicantObj.firstName,
       lastName: applicantObj.lastName,
