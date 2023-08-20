@@ -42,7 +42,10 @@
     const table = document.querySelector('table');
 
     fetch('/applicants')
-      .then(response => response.json())
+      .then(response => {
+        console.log(response);
+        response.json()
+      })
       .then(applicants => {
         applicants.forEach(applicant => {
           const row = table.insertRow();
