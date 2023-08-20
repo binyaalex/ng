@@ -32,7 +32,7 @@ app.get('/applicants', async (req, res) => {
   try {
     console.log(1);
     const applicants = await Applicant.find();
-    console.log(applicants);
+    console.log(applicants[0].firstName);
     res.status(200).json(applicants);
     console.log(3);
   } catch (error) {
