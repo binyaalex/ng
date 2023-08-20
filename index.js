@@ -30,11 +30,17 @@ app.use(cors());
 // Route for get the data
 app.get('/applicants', async (req, res) => {
   try {
+    console.log(1);
     const applicants = await Applicant.find();
+    console.log(2);
     res.status(200).json(applicants);
+    console.log(3);
   } catch (error) {
+    console.log(4);
     console.error(error);
+    console.log(5);
     res.status(500).json({ message: 'Error fetching applicants' });
+    console.log(6);
   }
 });  
 
