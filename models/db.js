@@ -1,5 +1,6 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
-const mongoURI = "mongodb+srv://binyaalex:b8r9Xem8hxdBE6ny@cluster0.ejsuui1.mongodb.net/?retryWrites=true&w=majority";
+const mongoURI = process.env.MONGO_URI;
 
 const connectDB = () => {
   return new Promise((resolve, reject) => {
@@ -16,7 +17,6 @@ const connectDB = () => {
     });
 
     db.once('open', () => {
-      console.log('Connected to MongoDB');
       resolve(); // Resolve the promise when the connection is open
     });
   });

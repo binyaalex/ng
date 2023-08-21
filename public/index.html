@@ -51,7 +51,7 @@
             <td>${applicant.firstName + " " + applicant.lastName}</td>
             <td>${applicant.email}</td>
             <td>${applicant.mobile}</td>
-            <td>${applicant.linkedin}</td>
+            <td><a href=${applicant.linkedin} target="_blank">Link</a></td>
             <td><a href="/download/${applicant._id}" target="_blank">Download PDF</a></td>
           `;
         });
