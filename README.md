@@ -1,3 +1,5 @@
+https://wild-pear-viper-toga.cyclic.cloud/
+
 I've developed a simple frontend using VITE, and you can find the Git repository here: https://github.com/binyaalex/vite-app.
 
 In addition, I've created a straightforward frontend that you can access on port 3000, eliminating the need to run both the frontend and backend separately. For your convenience, I've set up an automated test for the software in the "Test" folder. You can initiate the test by running test.js simultaneously with Index.js.

@@ -21,7 +21,7 @@
 </head>
 <body>
   <h1>Upload PDF</h1>
-  <form action="/upload" method="POST" enctype="multipart/form-data">
+  <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
     <input type="file" name="pdf" accept=".pdf" required>
     <button type="submit">Upload</button>
   </form>
@@ -41,9 +41,25 @@
   <script>
     const table = document.querySelector('table');
 
-    fetch('/applicants')
-      .then(response => response.json())
-      .then(applicants => {
+    // Function to update the table with the list of applicants
+    const updateTable = async () => {
+      table.innerHTML = ''; // Clear the table before adding new data
+
+      // Add the table header row
+      const headerRow = table.insertRow();
+      headerRow.innerHTML = `
+        <th>ID</th>
+        <th>Candidate name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>LinkedIn</th>
+        <th>PDF</th>
+      `;
+
+      try {
+        const response = await fetch('/applicants');
+        const applicants = await response.json();
+
         applicants.forEach(applicant => {
           const row = table.insertRow();
           row.innerHTML = `
@@ -55,10 +71,42 @@
             <td><a href="/download/${applicant._id}" target="_blank">Download PDF</a></td>
           `;
         });
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching data:', error);
-      });
+      }
+    };
+
+    // Function to handle form submission
+    const handleFormSubmit = async event => {
+      event.preventDefault(); // Prevent the form from submitting normally
+
+      const uploadForm = document.getElementById('uploadForm');
+      const formData = new FormData(uploadForm);
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          console.log('Data uploaded successfully');
+          // Update the table with the new data
+          updateTable();
+        } else {
+          console.error('Error uploading data');
+        }
+      } catch (error) {
+        console.error('Error uploading data:', error);
+      }
+    };
+
+    // Attach form submission handler to the form
+    const uploadForm = document.getElementById('uploadForm');
+    uploadForm.addEventListener('submit', handleFormSubmit);
+
+    // Initial call to populate the table
+    updateTable();
   </script>
 </body>
 </html>
