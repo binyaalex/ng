@@ -52,12 +52,12 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     }
 
     const applicantObj = {
-        firstName: null,
-        lastName: null, 
-        email: null,
-        id: null,
-        linkedin: null,
-        mobile: null,
+      firstName: null,
+      lastName: null, 
+      email: null,
+      id: null,
+      linkedin: null,
+      mobile: null,
     }
     const pdfBuffer = req.file.buffer;
     
@@ -65,8 +65,8 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
     const pdfDataParsed = await pdfParse(pdfBuffer);
     const extractedText = pdfDataParsed.text;
     
-    // links - for linkdin name and email
     try {
+      // links - for linkdin name and email
       await extractLinksAndInfo(pdfBuffer, applicantObj, extractedText);
 
       await extractMobileAndID(pdfBuffer, applicantObj, extractedText);
@@ -96,6 +96,55 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Error saving data' });
     }
+});
+
+// Route for folder upload
+let allApplicants = []
+app.post('/upload-folder', upload.array('folder'), async (req, res) => {
+  try {
+    const pdfFiles = req.files;
+
+    for (const pdfFile of pdfFiles) {
+      const applicantObj = {
+        firstName: null,
+        lastName: null, 
+        email: null,
+        id: null,
+        linkedin: null,
+        mobile: null,
+      }
+      const pdfBuffer = pdfFile.buffer;
+      console.log(1);
+      // ... (process the PDF buffer and save to database as before)
+      const pdfDataParsed = await pdfParse(pdfBuffer);
+      const extractedText = pdfDataParsed.text;
+      
+      try {
+        // links - for linkdin name and email
+        await extractLinksAndInfo(pdfBuffer, applicantObj, extractedText);
+  
+        await extractMobileAndID(pdfBuffer, applicantObj, extractedText);
+    
+        // Rest of your code
+      } catch (error) {
+        console.error('Error extracting PDF:', error);
+        // Handle the error
+      }
+      // console.log(applicantObj);
+      allApplicants.push(applicantObj);
+      console.log(allApplicants);
+    }
+    try {
+      await Applicant.insertMany(allApplicants);
+      console.log('All data saved successfully');
+      res.status(200).json({ message: 'Folder uploaded and processed successfully' });
+  } catch (error) {
+      console.error('Error saving data:', error);
+    }
+  } catch (error) {
+    console.error('Error uploading folder:', error);
+    res.status(500).json({ message: 'Error uploading folder' });
+  }
 });
 
 // Route for download file

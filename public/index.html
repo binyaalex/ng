@@ -26,6 +26,12 @@
     <button type="submit">Upload</button>
   </form>
 
+  <h1>Upload many</h1>
+  <form id="uploadFolderForm" enctype="multipart/form-data">
+    <input type="file" name="folder" accept=".pdf" directory multiple required>
+    <button type="submit">Upload many</button>
+  </form>
+
   <h1>Applicants List</h1>
   <table>
     <tr>
@@ -108,5 +114,32 @@
     // Initial call to populate the table
     updateTable();
   </script>
+  <script>
+    const uploadFolderForm = document.getElementById('uploadFolderForm');
+    
+    uploadFolderForm.addEventListener('submit', async event => {
+      event.preventDefault(); // Prevent the form from submitting normally
+      
+      const formData = new FormData(uploadFolderForm);
+      
+      try {
+        const response = await fetch('/upload-folder', {
+          method: 'POST',
+          body: formData,
+        });
+      
+        if (response.ok) {
+          console.log('Folder uploaded successfully');
+          // Update the table with the new data
+          updateTable();
+        } else {
+          console.error('Error uploading folder');
+        }
+      } catch (error) {
+        console.error('Error uploading folder:', error);
+      }
+    });
+  </script>
+  
 </body>
 </html>
