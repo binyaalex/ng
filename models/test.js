@@ -25,7 +25,8 @@ async function processPDFFiles() {
           ...form.getHeaders(),
         };
         const response = await axios.post(uploadUrl, form, { headers });
-        console.log(`Uploaded and processed ${pdfFile}:`, response.data);
+        const { rawData, ...dataWithoutRaw } = response.data;
+        console.log(`Uploaded and processed ${pdfFile}:`, dataWithoutRaw);
       }
     }
 
